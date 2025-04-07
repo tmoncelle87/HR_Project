@@ -3,6 +3,8 @@ using System.ComponentModel;
 using System.ComponentModel.Design;
 using System.Linq;
 using System.Threading.Channels; // Added for state abbreviation check
+using System.Net.Mail;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Program
 {
@@ -43,8 +45,8 @@ namespace Program
                    "Employer Benefits\n" +
                    $"{EmployerBenefits}\n" +
                    "HR Contact Information\n" +
-                   $"HR Email Address {HREmailAddress}\n" +
-                   $"HR Telephone Number {HRPhoneNumber}\n";
+                   $"HR Email Address: {HREmailAddress}\n" +
+                   $"HR Telephone Number: {HRPhoneNumber}\n";
 
 
         }
@@ -73,7 +75,7 @@ namespace Program
                 if (stateAbbreviations.Contains(state))
                     return state;
 
-                Console.WriteLine("Invalid input, it must be a state abbreviation.");
+                Console.WriteLine("Invalid input, make sure to enter a valid state in abbreviation form");
             }
         }
 
@@ -95,75 +97,79 @@ namespace Program
             return input;
         }
 
-        public static bool VerifyInt(string input)
-        {
-            return int.TryParse(input, out _);
 
+
+
+        public static string PromptFormatEmailAddress(string prompt)
+        {
+            while (true)
+            {
+                string userInputEmail = PromptUser(prompt);
+                try
+                {
+                    MailAddress mailAddress = new MailAddress(userInputEmail);
+                    return mailAddress.Address; // Return the normalized email address
+                }
+                catch (FormatException)
+                {
+                    Console.WriteLine("Invalid email address format. Please try again.");
+                }
+            }
         }
 
 
+        public static bool VerifyDecimal(string input, out decimal verifiedDecimal)
+        {
+            return decimal.TryParse(input, out verifiedDecimal);
+        }
+
+        public static bool VerifyInt(string input, out int verifiedInt)
+        {
+            return int.TryParse(input, out verifiedInt);
+        }
 
         public static string PromptFormatTelephoneNumber(string prompt)
         {
             while (true)
             {
-                PromptUser(prompt + " telephone fromat +11234567891 or 1234567891");
-                string telephoneNumber;
-                telephoneNumber = Console.ReadLine();
-                if (VerifyInt(telephoneNumber))
+                PromptUser(prompt + " telephone format: +11234567891 or 1234567891");
+                string telephoneNumber = Console.ReadLine();
+
+                // Using VerifyInt method to check if the input is numeric
+                int verifiedInt;
+                if (VerifyInt(telephoneNumber, out verifiedInt))
                 {
+                    // Check length and format based on length
                     if (telephoneNumber.Length == 10)
                     {
-                        return telephoneNumber;
+                        // Format 10-digit number as xxx-xxx-xxxx
+                        return telephoneNumber.Substring(0, 3) + "-" + telephoneNumber.Substring(3, 3) + "-" + telephoneNumber.Substring(6, 4);
                     }
                     else if (telephoneNumber.Length == 12)
                     {
-                        return telephoneNumber.Substring(0, 1) + "-" + telephoneNumber.Substring(2, 3) + "-"+ telephoneNumber.Substring(5, 3) + "-" + telephoneNumber.Substring(8, 3) ;
+                        // Format 12-digit number with the leading + as +x-xxx-xxx-xxxx
+                        return telephoneNumber.Substring(0, 1) + "-" + telephoneNumber.Substring(2, 3) + "-" + telephoneNumber.Substring(5, 3) + "-" + telephoneNumber.Substring(8, 4);
                     }
                     else
                     {
-                        Console.WriteLine("Invalid telephone number input:");
+                        Console.WriteLine("Invalid input. Please ensure the number has 10 or 12 digits.");
                     }
                 }
-
-
+                else
+                {
+                    Console.WriteLine("Invalid input. Please enter numeric characters only.");
+                }
             }
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         public static string PromptFormatZipCode(string prompt)
         {
             while (true)
             {   
-                PromptUser(prompt + " Zip Code format(12345 or 123456789");
-                string zipCode;
-                zipCode = Console.ReadLine();
-                if (VerifyInt(zipCode))
+                PromptUser(prompt + " Zip Code format(12345 or 123456789)");
+                int verifiedInt;
+                string  zipCode = Console.ReadLine();
+                if (VerifyInt(zipCode, out verifiedInt))
                     {
                         if (zipCode.Length == 5)
                         {
@@ -175,9 +181,14 @@ namespace Program
                         }
                         else
                         {
-                            Console.WriteLine("Invalid Zip code input:");
+                            Console.WriteLine("Invalid Zipcode input, make sure to enter a zipcode according to the format(12345 or 123456789):");
                          }
+
                     }
+                else
+                {
+                    Console.WriteLine("Invalid input, make sure to only input integers");
+                }
                
 
             }
@@ -324,7 +335,7 @@ namespace Program
                         break;
 
                     }
-                    Console.WriteLine("Invalid Input");
+                    Console.WriteLine("Invalid input, make sure to enter a proper response either a 'y' for yes or 'n' for no");
 
                 }
 
@@ -349,27 +360,27 @@ namespace Program
                     firstEmployerObj.EmployerState = PromptForValidState("Please type and enter your employer's state abbreviation:");
                     firstEmployerObj.EmployerZipCode = PromptFormatZipCode("Please type and enter your employer's zip code:");
 
-                    int employeeNumberOFEmployees = 0;
+                    string employeeNumberOFEmployees = null;
                     isInvalidInput = true;
+                    int verifiedInt;
 
                     // Validate employee number input using a while loop
                     while (isInvalidInput)
                     {
-                        userInput = PromptUser("Please type and enter your employer's number of employees if known, if unknown type and enter 0:");
+                        userInput = PromptUser("Please type and enter your employer's number of employees:");
 
-                        if (int.TryParse(userInput, out employeeNumberOFEmployees))
+                        if (VerifyInt(userInput, out verifiedInt))
                         {
-                            firstEmployerObj.EmployerNumberOfEmployees = employeeNumberOFEmployees;
+                            firstEmployerObj.EmployerNumberOfEmployees = verifiedInt;
                             isInvalidInput = false;
                         }
                         else
                         {
-                            Console.WriteLine("Failed to parse the string.");
+                            Console.WriteLine("Invalid input, make sure to only type number.");
                         }
                     }
 
-                    Console.WriteLine("Please type and enter your employer's email address:");
-                    firstEmployerObj.EmployerEmailAddress = PromptUser("Please type and enter 'none' if you don't have an employer email address:");
+                    firstEmployerObj.EmployerEmailAddress =  PromptFormatEmailAddress("Please type and enter your employer's email address:");
                     firstEmployerObj.EmployerPhoneNumber = PromptUser("Please type and enter your employer's phone number (e.g., +1 123 456 7890):");
                     firstEmployerObj.EmployerLegalEntityType = PromptUser("Please type and enter your employer's legal entity type for the business:");
                 }
@@ -395,7 +406,7 @@ namespace Program
                 while (UserSalaryInput != "Y" && UserSalaryInput != "N")
                 {
                     // Inform the user that their input is invalid
-                    Console.WriteLine("Invalid input. Please enter 'y' for yes or 'n' for no.");
+                    Console.WriteLine("Invalid input, make sure to enter 'y' for yes or 'n' for no.");
                     UserSalaryInput = PromptUser("Are you a salary employee? Enter y for yes or n for no").ToUpper();
                 }
                 // Set isSalary based on valid input
@@ -428,7 +439,7 @@ namespace Program
                         }
                         else
                         {
-                            Console.WriteLine("Failed to parse the string.");
+                            Console.WriteLine("Invalid input, make sure to enter numbers for your salary");
                         }
                     }
                 }
@@ -451,7 +462,7 @@ namespace Program
                         }
                         else
                         {
-                            Console.WriteLine("Failed to parse the string.");
+                            Console.WriteLine("Invalid input, make sure to enter numbers for your average amount of hours worked.");
                         }
                     }
 
@@ -471,7 +482,7 @@ namespace Program
                         }
                         else
                         {
-                            Console.WriteLine("Failed to parse the string.");
+                            Console.WriteLine("Invalid input, make sure to only enter numbers for your hourly pay");
                         }
                     }
 
@@ -480,7 +491,7 @@ namespace Program
 
                 // Prompt and collect remaining employee information
                 firstEmployee.EmployeePhoneNumber = PromptUser("Please type and enter your preferred phone number:");
-                firstEmployee.EmployeeEmailAddress = PromptUser("Please type and enter your preferred email address:");
+                firstEmployee.EmployeeEmailAddress = PromptFormatEmailAddress("Please type and enter your preferred email address:");
                 firstEmployee.EmployeeDepartment = PromptUser("Please type and enter what department you work in:");
                 firstEmployee.EmployeeEmploymentSatus = PromptUser("Please type and enter your employment status:");
                 firstEmployee.EmployeePerformanceRating = PromptUser("Please type and enter your latest performance rating number:");
