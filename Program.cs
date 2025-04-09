@@ -120,12 +120,46 @@ namespace Program
 
         public static bool VerifyDecimal(string input, out decimal verifiedDecimal)
         {
-            return decimal.TryParse(input, out verifiedDecimal);
+            if (decimal.TryParse(input, out verifiedDecimal))
+            {
+                if (verifiedDecimal >= 0)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+
         }
+
+
+
 
         public static bool VerifyInt(string input, out int verifiedInt)
         {
-            return int.TryParse(input, out verifiedInt);
+            if (int.TryParse(input, out verifiedInt))
+            {
+                if (verifiedInt >= 0)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+
+            
         }
 
         public static string PromptFormatTelephoneNumber(string prompt)
@@ -162,6 +196,8 @@ namespace Program
             }
         }
 
+
+
         public static string PromptFormatZipCode(string prompt)
         {
             while (true)
@@ -181,17 +217,70 @@ namespace Program
                         }
                         else
                         {
-                            Console.WriteLine("Invalid Zipcode input, make sure to enter a zipcode according to the format(12345 or 123456789):");
+                            Console.WriteLine("Invalid Zipcode input, Please make sure to enter a zipcode according to the format(12345 or 123456789):");
                          }
 
                     }
                 else
                 {
-                    Console.WriteLine("Invalid input, make sure to only input integers");
+                    Console.WriteLine("Invalid input, Please make sure to only input numbers for zipcode:");
                 }
                
 
             }
+            static bool promptForYesNo(string prompt)
+            {
+                Console.WriteLine(prompt);
+                string input;
+                while (true)
+                {
+                    input = PromptUser("Please type and enter 'y' for yes or 'n' for no:").ToLower();
+                    if (input == "y")
+                    {
+                        return true;
+                    }
+                    else if (input == "n")
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Invalid input, please enter 'y' for yes or 'n' for no.");
+                    }
+                }
+            }
+            bool isSalary = false;
+            bool isInvalidInput = true;
+            string userInput = null;
+
+            bool isEmployed = false;
+            string employedInput;
+            
+            // Prompt user for employment status
+            while (true)
+            {
+                employedInput = PromptUser("Are you currently employed? (Enter y for yes or n for no): ").ToLower();
+
+                // Declare a boolean to store employment status
+
+
+                // Determine employment status based on user input
+                if (employedInput == "y")
+                {
+                    isEmployed = true;
+                    break;
+                }
+                else if (employedInput == "n")
+                {
+
+                    isEmployed = false;
+                    break;
+
+                }
+                Console.WriteLine("Invalid input, make sure to enter a proper response either a 'y' for yes or 'n' for no");
+
+            }
+
         }
 
         public class EmployeeData
@@ -346,7 +435,7 @@ namespace Program
                 EmployeeData firstEmployee = new EmployeeData();
 
                 // If employed, collect employer information
-                if (isEmployed == true)
+                if (isEmployed == true) 
                 {
                     Console.WriteLine("Please answer the following questions about your employer:");
                     Employer firstEmployerObj = new Employer(); // Create Employer object
@@ -355,6 +444,8 @@ namespace Program
                     // Prompt and collect employer information
                     firstEmployerObj.EmployerName = PromptUser("Please enter your employer's name:");
                     firstEmployerObj.EmployerTaxId = PromptUser("Please type and enter your employer's Tax Id:");
+                    firstEmployerObj.HRPhoneNumber = PromptFormatTelephoneNumber("Please type and enter HR's telephone number:");
+                    firstEmployerObj.HREmailAddress = PromptFormatEmailAddress("Please type and enter HR's Email address:");
                     firstEmployerObj.EmployerStreetAddress = PromptUser("Please type and enter your employer's street address:");
                     firstEmployerObj.EmployerCity = PromptUser("Please type and enter your employer's City:");
                     firstEmployerObj.EmployerState = PromptForValidState("Please type and enter your employer's state abbreviation:");
@@ -383,6 +474,105 @@ namespace Program
                     firstEmployerObj.EmployerEmailAddress =  PromptFormatEmailAddress("Please type and enter your employer's email address:");
                     firstEmployerObj.EmployerPhoneNumber = PromptUser("Please type and enter your employer's phone number (e.g., +1 123 456 7890):");
                     firstEmployerObj.EmployerLegalEntityType = PromptUser("Please type and enter your employer's legal entity type for the business:");
+                    firstEmployee.EmployeePosition = PromptUser("Please type and enter your position:");
+
+
+                    firstEmployee.EmployeeId = PromptUser("Please enter your employee Id:");
+
+
+                    string UserSalaryInput = PromptUser("Are you a salary employee? Enter y for yes or n for no").ToUpper();
+
+                    while (UserSalaryInput != "Y" && UserSalaryInput != "N")
+                    {
+                        // Inform the user that their input is invalid
+                        Console.WriteLine("Invalid input, make sure to enter 'y' for yes or 'n' for no.");
+                        UserSalaryInput = PromptUser("Are you a salary employee? Enter y for yes or n for no").ToUpper();
+                    }
+                    // Set isSalary based on valid input
+                    if (UserSalaryInput == "Y")
+                    {
+                        isSalary = true;
+                    }
+                    else
+                    {
+                        isSalary = false;
+                    }
+
+                    firstEmployee.isSalary = isSalary; // Set isSalary property
+
+                    // Collect salary information if salaried
+                    if (isSalary == true)
+                    {
+                        decimal EmployeeYearlySalary = 0;
+                        isInvalidInput = true;
+
+                        // Validate salary input using a while loop
+                        while (isInvalidInput)
+                        {
+                            userInput = PromptUser("Please type and enter your yearly salary:");
+
+                            if (decimal.TryParse(userInput, out EmployeeYearlySalary))
+                            {
+                                firstEmployee.EmployeeSalary = EmployeeYearlySalary;
+                                isInvalidInput = false;
+                            }
+                            else
+                            {
+                                Console.WriteLine("Invalid input, make sure to enter numbers for your salary");
+                            }
+                        }
+                    }
+
+                    // Collect hourly information if not salaried
+                    if (isSalary == false)
+                    {
+                        decimal EmployeeAverageHoursWorked;
+                        isInvalidInput = true;
+
+                        // Validate hours worked input using a while loop
+                        while (isInvalidInput)
+                        {
+                            userInput = PromptUser("Please enter your average amount of hours you work weekly:");
+
+                            if (decimal.TryParse(userInput, out EmployeeAverageHoursWorked))
+                            {
+                                firstEmployee.EmployeeAverageHoursWorkedWeekly = EmployeeAverageHoursWorked;
+                                isInvalidInput = false;
+                            }
+                            else
+                            {
+                                Console.WriteLine("Invalid input, make sure to enter numbers for your average amount of hours worked.");
+                            }
+                        }
+
+                        // Prompt and collect hourly pay information
+                        decimal EmployeeHourlyPay = 0;
+                        isInvalidInput = true;
+
+                        // Validate hours worked input using a while loop
+                        while (isInvalidInput)
+                        {
+                            userInput = PromptUser("Please enter your hourly pay:");
+
+                            if (decimal.TryParse(userInput, out EmployeeHourlyPay))
+                            {
+                                firstEmployee.EmployeeHourlyPay = EmployeeHourlyPay;
+                                isInvalidInput = false;
+                            }
+                            else
+                            {
+                                Console.WriteLine("Invalid input, make sure to only enter numbers for your hourly pay");
+                            }
+                        }
+
+                        firstEmployee.EmployeeHourlyYearlyPay = (firstEmployee.EmployeeHourlyPay * firstEmployee.EmployeeAverageHoursWorkedWeekly * 52);
+                    }
+
+
+
+
+
+
                 }
 
                 // Collect employee personal information
@@ -393,101 +583,6 @@ namespace Program
                 firstEmployee.EmployeeState = PromptForValidState("Please enter your state of residence abbreviated:").ToUpper();
                 firstEmployee.EmployeeZipCode = PromptFormatZipCode("Please enter your zip code of residence:");
 
-                // Prompt and collect remaining employee personal information
-                firstEmployee.EmployeePosition = PromptUser("Please type and enter your position:");
-
-
-                firstEmployee.EmployeeId = PromptUser("Please enter your employee Id:");
-
-                // Determine if employee is salaried
-
-                string UserSalaryInput = PromptUser("Are you a salary employee? Enter y for yes or n for no").ToUpper();
-
-                while (UserSalaryInput != "Y" && UserSalaryInput != "N")
-                {
-                    // Inform the user that their input is invalid
-                    Console.WriteLine("Invalid input, make sure to enter 'y' for yes or 'n' for no.");
-                    UserSalaryInput = PromptUser("Are you a salary employee? Enter y for yes or n for no").ToUpper();
-                }
-                // Set isSalary based on valid input
-                if (UserSalaryInput == "Y")
-                {
-                    isSalary = true;
-                }
-                else
-                {
-                    isSalary = false;
-                }
-
-                firstEmployee.isSalary = isSalary; // Set isSalary property
-
-                // Collect salary information if salaried
-                if (isSalary == true)
-                {
-                    decimal EmployeeYearlySalary = 0;
-                    isInvalidInput = true;
-
-                    // Validate salary input using a while loop
-                    while (isInvalidInput)
-                    {
-                        userInput = PromptUser("Please type and enter your yearly salary:");
-
-                        if (decimal.TryParse(userInput, out EmployeeYearlySalary))
-                        {
-                            firstEmployee.EmployeeSalary = EmployeeYearlySalary;
-                            isInvalidInput = false;
-                        }
-                        else
-                        {
-                            Console.WriteLine("Invalid input, make sure to enter numbers for your salary");
-                        }
-                    }
-                }
-
-                // Collect hourly information if not salaried
-                if (isSalary == false)
-                {
-                    decimal EmployeeAverageHoursWorked;
-                    isInvalidInput = true;
-
-                    // Validate hours worked input using a while loop
-                    while (isInvalidInput)
-                    {
-                        userInput = PromptUser("Please enter your average amount of hours you work weekly:");
-
-                        if (decimal.TryParse(userInput, out EmployeeAverageHoursWorked))
-                        {
-                            firstEmployee.EmployeeAverageHoursWorkedWeekly = EmployeeAverageHoursWorked;
-                            isInvalidInput = false;
-                        }
-                        else
-                        {
-                            Console.WriteLine("Invalid input, make sure to enter numbers for your average amount of hours worked.");
-                        }
-                    }
-
-                    // Prompt and collect hourly pay information
-                    decimal EmployeeHourlyPay = 0;
-                    isInvalidInput = true;
-
-                    // Validate hours worked input using a while loop
-                    while (isInvalidInput)
-                    {
-                        userInput = PromptUser("Please enter your hourly pay:");
-
-                        if (decimal.TryParse(userInput, out EmployeeHourlyPay))
-                        {
-                            firstEmployee.EmployeeHourlyPay = EmployeeHourlyPay;
-                            isInvalidInput = false;
-                        }
-                        else
-                        {
-                            Console.WriteLine("Invalid input, make sure to only enter numbers for your hourly pay");
-                        }
-                    }
-
-                    firstEmployee.EmployeeHourlyYearlyPay = (firstEmployee.EmployeeHourlyPay * firstEmployee.EmployeeAverageHoursWorkedWeekly * 52);
-                }
 
                 // Prompt and collect remaining employee information
                 firstEmployee.EmployeePhoneNumber = PromptUser("Please type and enter your preferred phone number:");
